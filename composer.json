@@ -1,0 +1,23 @@
+{
+    "name": "omogen/laravel-omogentalk-v2",
+    "description": "Laravel base library for Omogen formats",
+    "authors": [
+        {
+            "name": "Florian Javanet",
+            "email": "florian.javanet@asap-info.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "laravel/framework": "^8.0",
+        "guzzlehttp/guzzle": "^7.0.1",
+        "defuse/php-encryption": "^2.2",
+        "fideloper/proxy": "^4.2",
+        "fruitcake/laravel-cors": "^1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "OmogenTalk\\": "src/"
+        }
+    }
+}
