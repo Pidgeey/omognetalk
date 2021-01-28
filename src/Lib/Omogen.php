@@ -21,7 +21,8 @@ class Omogen
     const STATE_OK = "10",
         STATE_AUTH_IMPOSSIBLE = "21",
         STATE_AUTH_NEEDED = '22',
-        STATE_BAD_REQUEST = "34";
+        STATE_BAD_REQUEST = "34",
+        STATE_GENERAL_ERROR = "39";
 
     /**
      * Récupère un objet Omogen
@@ -191,6 +192,8 @@ class Omogen
             }
         } elseif (strpos($explodeResponse[0], self::STATE_AUTH_NEEDED) !== false) {
             $response['status'] = 403;
+        } elseif (strpos($explodeResponse[0], self::STATE_GENERAL_ERROR) !== false) {
+            $response['status'] = 500;
         }
 
         return $response;

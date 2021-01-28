@@ -179,6 +179,7 @@ class OmogenBuilder
      *
      * @return \OmogenTalk\Model\Model|null
      * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws \Exception
      */
     public function createOrUpdate(): ?Model
     {
@@ -209,6 +210,10 @@ class OmogenBuilder
                 // Créer un message de log regroupant les champs ignoré ainsi que le type de model, id, etc..
             }
             return $this->model;
+
+        } else if ($state === 500) {
+            // Créer un log d'erreur comprenant la classe du model, les champs etc...
+            throw new \Exception("An error has been occurred");
         }
     }
 
