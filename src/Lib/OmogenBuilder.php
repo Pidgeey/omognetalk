@@ -186,7 +186,7 @@ class OmogenBuilder
         $this->method = self::METHOD_PUT;
         $this->format = self::FORMAT_PDA;
 
-        $this->builder = sprintf('%s=%s', $this->model->getPrimaryKey(), $this->model->getId());
+        $this->builder = sprintf('id=%s', $this->model->getId());
 
         if ($this->model->hasChanges()) {
             // Détermine si il s'agit d'un update afin d'envoyer ou non l'argument class lors de la requête
