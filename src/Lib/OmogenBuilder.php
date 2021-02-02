@@ -6,6 +6,7 @@ use OmogenTalk\Model\Model;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Arr;
 use \Exception;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 /**
  * Class OmogenBuilder
@@ -51,7 +52,6 @@ class OmogenBuilder
         $this->model = $model;
         $this->data = $data;
         $this->domain = env('OMOGEN_LINK');
-        $this->data['class'] = $model->getOmogenClass();
     }
 
     /**
@@ -73,7 +73,12 @@ class OmogenBuilder
                     $entityType = $entity['classe'];
                     $model = Arr::get(config('model'), $entityType);
                     $convertedAttributes = $this->model->getOmogenConvertedAttributes(self::METHOD_GET, true, $entity);
-                    $collection[] = new $model($convertedAttributes);
+
+                    /** @var Model $model */
+                    $model = new $model($convertedAttributes);
+                    // Déclare que le model est existant sur le système Omogen afin de modifier la logique d'utilisation des attributs
+                    $model->declareModelIsExisting();
+                    $collection[] = $model;
                 }
             }
         }
@@ -186,17 +191,32 @@ class OmogenBuilder
         $this->method = self::METHOD_PUT;
         $this->format = self::FORMAT_PDA;
 
-        $this->builder = sprintf('id=%s', $this->model->getId());
+        /**
+         * Cette condition permets de déterminer si le paramètre &class doit être ajouté une non dans la requête
+         * Le cas classique veut que le paramètre soit présent lors d'une création mais pas lors d'une mise à jour
+         * Certaines classes Omogen comme Utilisateurs ou Groupes nécessitent que le paramètre soit toujours présent
+         */
+        if ($this->model->hasPersistingClassParameter() || !$this->model->hasChanges()) {
+            $this->data['class'] = $this->model->getOmogenClass();
 
+        }
+
+        // Détermine si les attributs du model sont modifiés afin de récupérer les bons attributs
         if ($this->model->hasChanges()) {
             // Détermine si il s'agit d'un update afin d'envoyer ou non l'argument class lors de la requête
             $this->data['update'] = true;
             $convertedAttributes = $this->model->getOmogenConvertedAttributes(self::METHOD_PUT, false, $this->model->getChanges());
+
+            $this->builder = sprintf('id=%s', $this->model->getId());
         } else {
             $convertedAttributes = $this->model->getOmogenConvertedAttributes(self::METHOD_PUT);
         }
 
         foreach ($convertedAttributes['converted'] ?? [] as $key => $attribute) {
+            if (!$this->builder) {
+                $this->builder = "{$key}={$attribute}";
+                continue;
+            }
             $this->builder = $this->builder . "&{$key}={$attribute}";
         }
         $this->setUrlInData();
@@ -211,9 +231,15 @@ class OmogenBuilder
             }
             return $this->model;
 
-        } else if ($state === 500) {
+        } else {
+            if ($state === 400) {
+                $exception = new BadRequestHttpException($response['message']);
+            } else {
+                // State 500
+                $exception = new Exception("An error has been occured");
+            }
             // Créer un log d'erreur comprenant la classe du model, les champs etc...
-            throw new \Exception("An error has been occurred");
+            throw $exception;
         }
     }
 

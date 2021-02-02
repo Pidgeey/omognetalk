@@ -22,6 +22,7 @@ class Omogen
         STATE_AUTH_IMPOSSIBLE = "21",
         STATE_AUTH_NEEDED = '22',
         STATE_BAD_REQUEST = "34",
+        STATE_IMPOSSIBLE_ACTION = "37",
         STATE_GENERAL_ERROR = "39";
 
     /**
@@ -63,7 +64,7 @@ class Omogen
      */
     public static function createOrUpdateObject(array $data): array
     {
-        if (($data['class'] ?? null) && (!isset($data['update']))) {
+        if (($data['class'] ?? null)) {
             $data['url'] = sprintf("%s&class=%s", $data['url'], $data['class']);
         }
 
@@ -100,7 +101,7 @@ class Omogen
     public static function getAdminToken(): string
     {
         $response = (new Client())->post(env('OMOGEN_LINK') . '/guygle/api/login?info', [
-           'form_params' => self::prepareTokenRequest(env('OMOGEN_ADMIN_LOGIN'), env('OMOGEN_ADMIN_PASSWORD')),
+            'form_params' => self::prepareTokenRequest(env('OMOGEN_ADMIN_LOGIN'), env('OMOGEN_ADMIN_PASSWORD')),
         ]);
         $response = json_decode($response->getBody()->getContents());
         return $response->token;
@@ -172,7 +173,6 @@ class Omogen
         $explodeResponse = explode("\n", $pdaResponse);
 
         if (strpos($explodeResponse[0], self::STATE_OK) !== false) {
-
             /**
              * Response venant de createOrUpdateObject
              *
@@ -194,6 +194,9 @@ class Omogen
             $response['status'] = 403;
         } elseif (strpos($explodeResponse[0], self::STATE_GENERAL_ERROR) !== false) {
             $response['status'] = 500;
+        } elseif (strpos($explodeResponse[0], self::STATE_IMPOSSIBLE_ACTION) !== false) {
+            $response['status'] = 400;
+            $response['message'] = $explodeResponse[3];
         }
 
         return $response;

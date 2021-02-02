@@ -34,6 +34,11 @@ abstract class Model
     /** @var array Tableau des attributs ayant subit une modification */
     protected $changes = [];
 
+    /** @var bool Détermine si le paramètre class doit toujours être présent dans les requêtes */
+    protected $persistingClassParameter = false;
+
+    protected $exists = false;
+
     /**
      * Model constructor.
      *
@@ -79,6 +84,34 @@ abstract class Model
     public function getOmogenClassName(): string
     {
         return $this->omogenClassName;
+    }
+
+    /**
+     * Détermine si le model courant détient un paramètre class persistant
+     *
+     * @return bool
+     */
+    public function hasPersistingClassParameter(): bool
+    {
+        return $this->persistingClassParameter;
+    }
+
+    /**
+     * Détermine si le model courant existe sur le système Omogen
+     *
+     * @return bool
+     */
+    public function isObjectExistsInOmogen(): bool
+    {
+        return $this->exists;
+    }
+
+    /**
+     * Déclare le model courant comme existant sur le système Omogen
+     */
+    public function declareModelIsExisting()
+    {
+        $this->exists = true;
     }
 
     /**
@@ -224,7 +257,12 @@ abstract class Model
      */
     public function __set($name, $value)
     {
-        $this->changes[$name] = $value;
+        // Ce if permets de pouvoir modifier des attributs avant de créer l'objet sur Omogen
+        if (!$this->isObjectExistsInOmogen()) {
+            $this->attributes[$name] = $value;
+        } else {
+            $this->changes[$name] = $value;
+        }
     }
 
     /**
