@@ -302,4 +302,22 @@ class OmogenBuilder
         $this->data['url'] = "{$this->domain}guygle/{$this->format}/{$this->method}?{$this->builder}";
     }
 
+    /**
+     * Créer une requête query selon la clause en paramètre
+     *
+     * @param string $request
+     *
+     * @return $this
+     */
+    public function queryRaw(string $request): self
+    {
+        $this->method = self::METHOD_GET;
+        $this->format = self::FORMAT_API;
+
+        $this->builder = sprintf("query=%s %s", $this->model->getOmogenClassName(), $request);
+        $this->setUrlInData();
+
+        return $this;
+    }
+
 }
