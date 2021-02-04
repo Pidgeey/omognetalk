@@ -84,6 +84,7 @@ class Resource
     private function defineDataset(): array
     {
         return [
+            'id' => $this->resource->id ?? null,
             'type' => $this->resource->getOmogenClassName(),
             'attributes' => $this->toArray(),
         ];
