@@ -190,6 +190,7 @@ abstract class Model
      * @param \OmogenTalk\Requests\FormRequest $request
      *
      * @return static|null
+     * @throws \GuzzleHttp\Exception\GuzzleException
      */
     public static function create(FormRequest $request): ?self
     {
@@ -204,6 +205,7 @@ abstract class Model
      * @param string|null $token
      *
      * @return $this|null
+     * @throws \GuzzleHttp\Exception\GuzzleException
      */
     public function save(?string $token): ?self
     {
@@ -211,22 +213,32 @@ abstract class Model
     }
 
     /**
-     * Récupère le tableau des attributs modifiés du model courant
+     * Récupère les attributs modifiés apportés au model
      *
-     * @return array
+     * @param string|null $value
+     *
+     * @return string|array|null
      */
-    public function getChanges(): array
+    public function getChanges(?string $value = null)
     {
+        if ($value) {
+            return $this->changes[$value] ?? null;
+        }
         return $this->changes;
     }
 
     /**
      * Détermine si le model courant à subis des modifications d'attributs
      *
+     * @param string|null $value
+     *
      * @return bool
      */
-    public function hasChanges(): bool
+    public function hasChanges(?string $value = null): bool
     {
+        if ($value) {
+            return isset($this->changes[$value]);
+        }
         return !empty($this->changes);
     }
 
@@ -236,6 +248,7 @@ abstract class Model
      * @param \OmogenTalk\Requests\FormRequest $request
      *
      * @return array
+     * @throws \GuzzleHttp\Exception\GuzzleException
      */
     public function uploadDocument(FormRequest $request): array
     {

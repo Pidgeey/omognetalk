@@ -162,7 +162,7 @@ class OmogenBuilder
         if ($this->model->hasPersistingClassParameter()) {
             $this->data['class'] = $this->model->getOmogenClass();
         }
-        
+
         return $this->first();
     }
 
