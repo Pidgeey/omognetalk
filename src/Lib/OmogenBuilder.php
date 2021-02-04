@@ -157,7 +157,12 @@ class OmogenBuilder
      */
     public function find(string $objectId): ?Model
     {
-        $this->builder = "object=$objectId";
+        $this->builder = "id=$objectId";
+
+        if ($this->model->hasPersistingClassParameter()) {
+            $this->data['class'] = $this->model->getOmogenClass();
+        }
+        
         return $this->first();
     }
 
