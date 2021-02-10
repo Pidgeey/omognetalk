@@ -13,7 +13,8 @@
         "guzzlehttp/guzzle": "^7.0.1",
         "defuse/php-encryption": "^2.2",
         "fideloper/proxy": "^4.2",
-        "fruitcake/laravel-cors": "^1.0"
+        "fruitcake/laravel-cors": "^2.0@dev",
+        "barryvdh/laravel-cors": "^2.0@dev"
     },
     "autoload": {
         "psr-4": {

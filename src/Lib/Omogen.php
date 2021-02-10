@@ -131,7 +131,7 @@ class Omogen
         if ($response->code !== self::STATE_OK || !isset($response->token)) {
             $message = sprintf("%s %s", $response->code, $response->text);
             if ($response->code === self::STATE_AUTH_IMPOSSIBLE) {
-                $e = new AuthenticationException($message);
+                abort(401, $message);
             } else {
                 $e = new Exception($message);
             }
