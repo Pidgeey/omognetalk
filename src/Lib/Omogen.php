@@ -45,8 +45,8 @@ class Omogen
             $data['url'] = sprintf("%s&data", $data['url']);
         }
 
-        if ($data['depth'] ?? null) {
-            $data['url'] = sprintf("%s&depth=%s", $data['url'], $data['depth']);
+        if ($data['canonicalize'] ?? null) {
+            $data['url'] = sprintf("%s&canonicalize=php", $data['url']);
         }
 
         $response = (new Client)->post($data['url'], ['cookies' => $cookieJar]);

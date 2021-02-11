@@ -97,6 +97,10 @@ class OmogenBuilder
         $this->method = self::METHOD_GET;
         $this->setUrlInData();
 
+        if (!isset($this->data['canonicalize'])) {
+            $this->data['canonicalize'] = true;
+        }
+
         $result = Omogen::getObject($this->data);
 
         if (!isset($result['object'])) {
