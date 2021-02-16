@@ -49,6 +49,10 @@ class Omogen
             $data['url'] = sprintf("%s&canonicalize=php", $data['url']);
         }
 
+        if ($data['look'] ?? null) {
+            $data['url'] = sprintf("%s&look=%s", $data['url'], str_replace('#', '%23', $data['look']));
+        }
+
         $response = (new Client)->post($data['url'], ['cookies' => $cookieJar]);
 
         return json_decode(($response->getBody())->getContents(), true);

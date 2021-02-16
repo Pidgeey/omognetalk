@@ -329,4 +329,106 @@ class OmogenBuilder
         return $this;
     }
 
+    /**
+     * Permets de placer des relations une requête GET
+     *
+     * @return $this
+     */
+    public function with(): self
+    {
+        $args = func_get_args();
+        $look = [];
+
+        foreach ($args as $relation) {
+            $exp = explode('.', $relation);
+            $currentPath = '';
+            foreach ($exp as $index => $attribute) {
+                // Initialisation du currentPath lors de la première itération de la relation courante
+                if ($index === 0) {
+                    $currentPath = $attribute;
+                    // Si le départ de la relation n'existe pas, on le créer pour la suite
+                    if (!isset($look[$attribute])) {
+                        $look[$attribute] = [];
+                    }
+                    // On skip car nul besoin d'accèder aux étape suivantes
+                    continue;
+                }
+                // Mise à jour du currentPath de la relation courante
+                $currentPath = $currentPath.'.'.$attribute;
+                if (Arr::get($look, $currentPath)) {
+                    continue;
+                }
+                Arr::set($look, $currentPath, []);
+            }
+            $currentPath = '';
+        }
+
+        $builder = '';
+        $f = true;
+        // Parcours du tableau $look afin d'écrire le builder selon les relations précedement construites
+        foreach($look as $index => $value) {
+            // Si c'est une première itération, on défini la base de &look
+            if ($f) {
+                $builder = sprintf('["%s"',  $index);
+                $f = false;
+            } else {
+                // Sinon on concatène la suite de &look
+                $builder = sprintf('%s,"%s"', $builder,  $index);
+            }
+            // Appel de la méthode afin de créer le &look relatif à la relation courante
+            self::iterate($builder, $value);
+        }
+        // On finalise la valeur de &look on fermant le tableau initalisé au départ de la boucle des relations
+        $builder = $builder.']';
+
+        $this->data['look'] = $builder;
+
+        return $this;
+    }
+
+    /**
+     * Parcours une relation afin d'écrire le builder pour une requête contenant un with
+     *
+     * @param string $builder
+     * @param array $relation
+     * @param int $count
+     *
+     * @return mixed
+     */
+    public static function iterate(string &$builder, array $relation, int $count = 0)
+    {
+        $f = true;
+        $c = $count;
+
+        // Boucle sur une relation contenant 1,n attributs ex: agences,link
+        foreach ($relation as $index => $value) {
+            // Si c'est la première itération, on place l'ouverture du tableau
+            if ($f) {
+                $builder = sprintf('%s,["%s"', $builder, $index);
+                // Pour chaque ouverture de tableau, on incrémente pour savoir combien de tableau il faudra femer au terme de la relation
+                $c++;
+            } else {
+                // Si ce n'est pas le début de la relation, on place l'attribut à la suite du précedent
+                $builder = sprintf('%s,"%s"', $builder, $index);
+            }
+
+            // Si la relation contient plusieurs attributs on souhaite relancer le processus
+            if (count($relation) > 0) {
+                // Si l'attribut courant ne possède aucune valeur, cela veut dire que c'est la fin de la relation courant
+                if (empty($value)) {
+                    $f = false;
+                    // On passe à l'attribut suivant OU fin de la boucle si dernier attribut de la relation
+                    continue;
+                }
+                // Si l'attribut contient une valeur, cela veut dire que la relation est plus profonde donc on relance le processus
+                return self::iterate($builder, $value, $c);
+            }
+        }
+
+        // Pour chaque ouveture de tableau, on termine l'écriture de la relation par une fermeture de tableau
+        for ($i = 0; $i < $c; $i ++) {
+            $builder = sprintf('%s]', $builder);
+        }
+    }
+
 }
