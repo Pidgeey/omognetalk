@@ -37,7 +37,11 @@ abstract class Model
     /** @var bool Détermine si le paramètre class doit toujours être présent dans les requêtes */
     protected $persistingClassParameter = false;
 
+    /** @var bool Détermine si le model courant existe dans le système Omogen */
     protected $exists = false;
+
+    /** @var bool Détermine si l'identifiant doit être précisé dans l'url pour une requête de création */
+    public $idNeeded = false;
 
     /**
      * Model constructor.

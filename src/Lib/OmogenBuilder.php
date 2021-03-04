@@ -68,17 +68,26 @@ class OmogenBuilder
 
         if (!empty($result['object']) && count($result['object']) > 0) {
             $result = array_values($result['object']);
-            foreach ($result[0] as $entity) {
-                if (isset($entity['classe'])) {
-                    $entityType = $entity['classe'];
-                    $model = Arr::get(config('model'), $entityType);
-                    $convertedAttributes = $this->model->getOmogenConvertedAttributes(self::METHOD_GET, true, $entity);
 
-                    /** @var Model $model */
-                    $model = new $model($convertedAttributes);
-                    // Déclare que le model est existant sur le système Omogen afin de modifier la logique d'utilisation des attributs
-                    $model->declareModelIsExisting();
-                    $collection[] = $model;
+            // Si un résultat est obtenu
+            if (count($result[0]) > 0) {
+                // Si le data n'est pas requis, on retourne la liste des identifiants
+                if (!isset($this->data['data']) || (isset($this->data['data']) && !$this->data['data'])) {
+                    return $result[0];
+                }
+
+                foreach ($result[0] as $entity) {
+                    if (isset($entity['classe'])) {
+                        $entityType = $entity['classe'];
+                        $model = Arr::get(config('model'), $entityType);
+                        $convertedAttributes = $this->model->getOmogenConvertedAttributes(self::METHOD_GET, true, $entity);
+
+                        /** @var Model $model */
+                        $model = new $model($convertedAttributes);
+                        // Déclare que le model est existant sur le système Omogen afin de modifier la logique d'utilisation des attributs
+                        $model->declareModelIsExisting();
+                        $collection[] = $model;
+                    }
                 }
             }
         }
@@ -308,6 +317,10 @@ class OmogenBuilder
      */
     protected function setUrlInData(): void
     {
+        if ($this->model->hasRequiredId) {
+            $this->builder = sprintf("id=%s&%s", $this->model->getId(), $this->builder);
+        }
+
         $this->data['url'] = "{$this->domain}guygle/{$this->format}/{$this->method}?{$this->builder}";
     }
 
