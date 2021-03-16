@@ -53,6 +53,8 @@ class Omogen
             $data['url'] = sprintf("%s&look=%s", $data['url'], str_replace('#', '%23', $data['look']));
         }
 
+        $data['url'] = str_replace('#', '%23', $data['url']);
+
         $response = (new Client)->post($data['url'], ['cookies' => $cookieJar]);
 
         return json_decode(($response->getBody())->getContents(), true);
@@ -72,7 +74,9 @@ class Omogen
             $data['url'] = sprintf("%s&class=%s", $data['url'], $data['class']);
         }
 
-        $response = (new Client)->post($data['url'], ['cookies' => self::getCookie($data['token'])]);
+        $data['url'] = str_replace('#', '%23', $data['url']);
+
+        $response = (new Client)->post($data['url'], ['cookies' => self::getCookie($data['token']), 'form_params' => $data['form_data']]);
 
         return self::getFormattedPdaResponse(($response->getBody())->getContents());
     }

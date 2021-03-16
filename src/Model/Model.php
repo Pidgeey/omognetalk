@@ -5,6 +5,7 @@ namespace OmogenTalk\Model;
 use OmogenTalk\Requests\FormRequest;
 use OmogenTalk\Lib\Omogen;
 use OmogenTalk\Lib\OmogenBuilder;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 /**
  * Class Model
@@ -254,16 +255,55 @@ abstract class Model
      * @return array
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function uploadDocument(FormRequest $request): array
+    public function uploadDocument(string $key, UploadedFile $file): array
     {
         $response = [];
-        $attributes = $this->getOmogenConvertedAttributes(OmogenBuilder::METHOD_PUT, true, $request->allFiles());
+        $attributes = $this->getOmogenConvertedAttributes(OmogenBuilder::METHOD_PUT, true, [$key => $file]);
 
         foreach ($attributes as $field => $file) {
             $response[] = (new OmogenBuilder($this, ['token' => Omogen::getAdminToken()]))->uploadDocument($field, $file);
         }
 
         return $response;
+    }
+
+    /**
+     * Ajoute un groupe au model courant
+     *
+     * @param string $group
+     *
+     * @return void
+     */
+    public function addGroup(string $group)
+    {
+        // Récupère les groupes existants. S'il le model courant n'en dipose pas, créer un tableau vide par défaut
+        $groups = $this->groups ?? [];
+        // Ajoute le groupe en paramètre dans le tableau des groupes
+        $groups[] = $group;
+        // Mets à jour les groupes du model courant
+        $this->groups = $groups;
+    }
+
+    /**
+     * Set un identifiant pour le model courant
+     *
+     * @param string $id
+     */
+    public function setId(string $id)
+    {
+        $this->attributes['id'] = $id;
+    }
+
+    public function update(FormRequest $request)
+    {
+        $attributes = $request->getValidatedAttributes();
+
+        foreach ($attributes as $key => $value) {
+            $this->{$key} = $value;
+        }
+
+        // TODO: passer le token provenant du header
+        return $this->save(Omogen::getAdminToken());
     }
 
     /**

@@ -41,6 +41,11 @@ class OmogenBuilder
     /** @var string Format d'échange avec Omogen */
     protected $format = self::FORMAT_API;
 
+    /** @var bool Permets de déterminer s'il est nécessaire de rajouter l'id dans le builder */
+    protected $needIdOnRequest = true;
+
+    protected $formData = [];
+
     /**
      * OmogenBuilder constructor.
      *
@@ -226,17 +231,41 @@ class OmogenBuilder
             $convertedAttributes = $this->model->getOmogenConvertedAttributes(self::METHOD_PUT, false, $this->model->getChanges());
 
             $this->builder = sprintf('id=%s', $this->model->getId());
+
+            // NOTE: Evite le double ID dans le cas USER
+            $this->needIdOnRequest = false;
         } else {
             $convertedAttributes = $this->model->getOmogenConvertedAttributes(self::METHOD_PUT);
         }
 
         foreach ($convertedAttributes['converted'] ?? [] as $key => $attribute) {
-            if (!$this->builder) {
-                $this->builder = "{$key}={$attribute}";
-                continue;
+
+            // Traite le cas ou l'attribut est un tableau
+            if (is_array($attribute)) {
+                $arrayAttribute = $attribute;
+                $attribute = '';
+                foreach ($arrayAttribute as $index => $value) {
+                    if ($index === 0) {
+                        $attribute = $value;
+                        continue;
+                    }
+                    $attribute = $attribute . ' ' . $value;
+                }
+                $attribute = sprintf("%s", $attribute);
+
             }
-            $this->builder = $this->builder . "&{$key}={$attribute}";
+
+            /**
+             * Note 16/03/21: Essai d'envoyer les fichiers si fichiers présent dans le tableau d'attributs
+             * Résultat; pas de mise en place car utilité de la méthode uploadDocument qui mets à jour les documents
+             * PUIS mets à jour le form_data.
+             * Problème: Si un soucis surviens lors de l'update du form_data, les documents seront mis à jour mais pas
+             * les données du form_data. On ne veux pas qu'une partie des données ( documents ) soient à jour et pas le reste
+             */
+
+            $this->data['form_data'][$key] = $attribute;
         }
+
         $this->setUrlInData();
 
         $response = Omogen::createOrUpdateObject($this->data);
@@ -247,6 +276,7 @@ class OmogenBuilder
             if (isset($response['ignored_fields'])) {
                 // Créer un message de log regroupant les champs ignoré ainsi que le type de model, id, etc..
             }
+            $this->model->setId($response['id'] ?? null);
             return $this->model;
 
         } else {
@@ -317,7 +347,7 @@ class OmogenBuilder
      */
     protected function setUrlInData(): void
     {
-        if ($this->model->hasRequiredId) {
+        if ($this->model->hasRequiredId && $this->needIdOnRequest) {
             $this->builder = sprintf("id=%s&%s", $this->model->getId(), $this->builder);
         }
 
@@ -335,6 +365,7 @@ class OmogenBuilder
     {
         $this->method = self::METHOD_GET;
         $this->format = self::FORMAT_API;
+        $this->isQueryRequest = true;
 
         $this->builder = sprintf("query=%s %s", $this->model->getOmogenClassName(), $request);
         $this->setUrlInData();
