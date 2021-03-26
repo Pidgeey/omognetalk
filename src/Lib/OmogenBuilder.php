@@ -87,6 +87,9 @@ class OmogenBuilder
                         $model = Arr::get(config('model'), $entityType);
                         $convertedAttributes = $this->model->getOmogenConvertedAttributes(self::METHOD_GET, true, $entity);
 
+                        // Permets de cast les attributs avec plus de conformité
+                        $this->castAttributes($convertedAttributes);
+
                         /** @var Model $model */
                         $model = new $model($convertedAttributes);
                         // Déclare que le model est existant sur le système Omogen afin de modifier la logique d'utilisation des attributs
@@ -98,6 +101,24 @@ class OmogenBuilder
         }
 
         return $collection;
+    }
+
+    /**
+     * Cast attributes
+     *
+     * @param array $attributes
+     */
+    private function castAttributes(array &$attributes)
+    {
+        foreach ($attributes as $key => $value) {
+            if ($value === "Oui") {
+                $attributes[$key] = true;
+            }
+
+            if ($value === "Non") {
+                $attributes[$key] = false;
+            }
+        }
     }
 
     /**
