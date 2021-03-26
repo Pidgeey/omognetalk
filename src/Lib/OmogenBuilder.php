@@ -177,6 +177,8 @@ class OmogenBuilder
     {
         $this->builder = "id=$objectId";
 
+        $this->needIdOnRequest = false;
+
         if ($this->model->hasPersistingClassParameter()) {
             $this->data['class'] = $this->model->getOmogenClass();
         }
@@ -253,6 +255,10 @@ class OmogenBuilder
                 }
                 $attribute = sprintf("%s", $attribute);
 
+            }
+
+            if (is_bool($attribute)) {
+                $attribute ? $attribute = "Oui" : $attribute = "Non";
             }
 
             /**
