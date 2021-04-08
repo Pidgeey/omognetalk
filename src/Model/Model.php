@@ -285,6 +285,51 @@ abstract class Model
     }
 
     /**
+     * Converti un tableau de donnée en string pour intégrer un tableau syntaxe Omogen
+     *
+     * @param array $arrayToConvert
+     *
+     * @return string
+     */
+    public function convertToTableString(array $arrayToConvert)
+    {
+        /**
+         * Pour effectuer des entrés sur un tableau omogen, il faut parser le tout sur une string
+         *
+         * Chaque valeur de colonne doit être séparé par un caractère ASCII(8)
+         * Chaque ligne de tableau doit être séparé par un caractère ASCII(9)
+         */
+
+        $escape = chr(8);
+        $nextLine = chr(9);
+
+        $string = "";
+
+        // On boucle sur les différentes entrées du tableau de valeur
+        foreach ($arrayToConvert as $index => $values) {
+            // Ou boucle sur tous les attributs de chaque entrée
+            foreach (array_values($values) as $valueIndex => $value) {
+                // Si on passe sur une seconde entrée, on espace avec un tab
+                if ($valueIndex === 0 && $index > 0) {
+                    $string = sprintf("%s%s", $string, $nextLine);
+                }
+                // S'il s'agit de la première entrée, on démarre de cette valeur
+                if ($index === 0 && $valueIndex === 0) {
+                    $string = sprintf("%s", $value);
+                    // S'il s'agit de la première valeur mais pas la première entrée
+                } elseif ($index > 0 && $valueIndex === 0) {
+                    $string = sprintf("%s%s", $string, $value);
+                    // S'il s'agit d'une autre valeur, on incrémente la string existante puis y ajoute un espace
+                } else {
+                    $string = sprintf("%s%s%s", $string, $escape, $value);
+                }
+            }
+        }
+
+        return $string;
+    }
+
+    /**
      * Set un identifiant pour le model courant
      *
      * @param string $id

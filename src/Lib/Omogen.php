@@ -108,7 +108,7 @@ class Omogen
      */
     public static function getAdminToken(): string
     {
-        $response = (new Client())->post(env('OMOGEN_LINK') . '/guygle/api/login?info', [
+        $response = (new Client())->post(env('OMOGEN_LINK') . 'guygle/api/login?info', [
             'form_params' => self::prepareTokenRequest(env('OMOGEN_ADMIN_LOGIN'), env('OMOGEN_ADMIN_PASSWORD')),
         ]);
         $response = json_decode($response->getBody()->getContents());
@@ -127,7 +127,7 @@ class Omogen
     {
         $login = self::prepareUserId($credentials['login']);
 
-        $response = (new Client())->post(env('OMOGEN_LINK') . '/guygle/api/login?info', [
+        $response = (new Client())->post(env('OMOGEN_LINK') . 'guygle/api/login?info', [
             'form_params' => [
                 'login' => $login,
                 'password' => $credentials['password'],

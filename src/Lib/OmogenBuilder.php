@@ -136,13 +136,7 @@ class OmogenBuilder
             $this->data['canonicalize'] = true;
         }
 
-        $result = Omogen::getObject($this->data);
-
-        if (!isset($result['object'])) {
-            throw new Exception($result['text'], (int) $result['code']);
-        }
-
-        return $result;
+        return Omogen::getObject($this->data);
     }
 
     /**
