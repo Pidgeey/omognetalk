@@ -104,6 +104,76 @@ class OmogenBuilder
     }
 
     /**
+     * Cast un tableau objet lié en model
+     *
+     * @param $key
+     * @param $value
+     * @param $arrayValues
+     *
+     * @return Model|null
+     */
+    private function castObject($key, $value, $arrayValues)
+    {
+        $model = null;
+
+        if ($key === 'classe') {
+            $modelClass = Arr::get(config('model'), $value);
+            if ($modelClass) {
+                $model = new $modelClass;
+                $convertedAttributes = $model->getOmogenConvertedAttributes(self::METHOD_GET, true, $arrayValues);
+
+                $model = new $model($convertedAttributes);
+                // Si le model est déclaré, on remplace ce tableau d'attribut par une classe de ce model
+
+            }
+        }
+        return $model;
+    }
+
+    /**
+     * Boucle sur les attributs afin de cast en model les champs comprenant des objets
+     *
+     * @param $attributes
+     * @param $key
+     * @param $value
+     */
+    private function findObject(&$attributes, $key, $value)
+    {
+        if (is_array($value)) {
+            foreach ($value as $arrayValues) {
+                if (is_array($arrayValues)) {
+                    foreach ($arrayValues as $attributeKey => $attribute) {
+                        $model = $this->castObject($attributeKey, $attribute, $arrayValues);
+                        if ($model) {
+                            $attributes[$key] = $model;
+                            $this->findObject($model, $key, $model);
+                        }
+                    }
+                }
+            }
+        }
+
+        if (is_object($attributes)) {
+            foreach ($attributes->getAttributes() as $objectClass => $arrayValues) {
+                if (is_array($arrayValues)) {
+                    foreach ($arrayValues as $b) {
+                        if (is_array($b)) {
+                            foreach ($b as $attributeKey => $attribute) {
+                                $model = $this->castObject($attributeKey, $attribute, $b);
+                                if ($model) {
+                                    $attributes->{$objectClass} = $model;
+                                    $this->findObject($model, $key, $model);
+                                }
+                            }
+                        }
+                    }
+
+                }
+            }
+        }
+    }
+
+    /**
      * Cast attributes
      *
      * @param array $attributes
@@ -111,13 +181,21 @@ class OmogenBuilder
     private function castAttributes(array &$attributes)
     {
         foreach ($attributes as $key => $value) {
-            if ($value === "Oui") {
-                $attributes[$key] = true;
-            }
 
-            if ($value === "Non") {
-                $attributes[$key] = false;
-            }
+            /**
+             * Cast des objets lié en classe
+             *
+             * Le but de cet algo est de vérifier s'il existe des objets liés dans dans le retour des données Omogen
+             *
+             * On boucle sur les différents tableau sur deux niveaux, si un attribut classe est présent dans le second niveau
+             * cela veut donc dire que c'est un objet lié. On va donc vérifier si le model est déclaré dans l'application courante
+             * S'il existe, on va créer un nouveau model en injectant les attributs
+             *
+             * TODO: Pour optimiser le code, potentiellement voir uniquement les attributs qui sont précisé dans le paramètre
+             * de la méthode with($relation). Optimiser en bouclant uniquement sur les champs précisé en paramètre
+             */
+
+            $this->findObject($attributes, $key, $value);
         }
     }
 
@@ -407,6 +485,7 @@ class OmogenBuilder
         foreach ($args as $relation) {
             $exp = explode('.', $relation);
             $currentPath = '';
+            $this->relations[] = $exp;
             foreach ($exp as $index => $attribute) {
                 // Initialisation du currentPath lors de la première itération de la relation courante
                 if ($index === 0) {

@@ -52,6 +52,23 @@ abstract class Model
     public function __construct(array $attributes = [])
     {
         $this->attributes = $attributes;
+        $this->castBooleanAttributes();
+    }
+
+    /**
+     * Cast en boolean les champs Oui et Non depuis Omogen
+     */
+    private function castBooleanAttributes()
+    {
+        foreach ($this->getAttributes() as $key => $attribute) {
+            if ($attribute === 'Oui') {
+                $this->setAttribute($key, true);
+            }
+
+            if ($attribute === 'Non') {
+                $this->setAttribute($key, false);
+            }
+        }
     }
 
     /**
@@ -157,7 +174,7 @@ abstract class Model
      * @param string $attribute
      * @param string $value
      */
-    public function setAttribute(string $attribute, string $value)
+    public function setAttribute(string $attribute, $value)
     {
         $this->attributes[$attribute] = $value;
     }
