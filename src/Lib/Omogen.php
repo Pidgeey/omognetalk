@@ -101,6 +101,24 @@ class Omogen
     }
 
     /**
+     * Récupère un document depuis Omogen
+     *
+     * @param array $data
+     * @param string $storagePath
+     *
+     * @return \Psr\Http\Message\ResponseInterface
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
+    public static function getDocument(array $data, string $storagePath)
+    {
+        $cookieJar = CookieJar::fromArray(['GBSESSIONID' => $data['token']], env('OMOGEN_DOMAIN'));
+
+        $resource = \GuzzleHttp\Psr7\Utils::tryFopen($storagePath, 'w+');
+
+        return (new Client)->get($data['url'], ['cookies' => $cookieJar, 'sink' => $resource]);
+    }
+
+    /**
      * Retourne un token d'authentification admin
      *
      * @return string

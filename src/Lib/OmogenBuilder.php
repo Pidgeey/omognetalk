@@ -17,7 +17,8 @@ class OmogenBuilder
 {
     /** @var string Méthodes HTTP */
     const METHOD_GET = 'get',
-        METHOD_PUT = 'put';
+        METHOD_PUT = 'put',
+        METHOD_DOC = 'doc';
 
     /** @var string Formats d'échange avec Omogen */
     const FORMAT_API = 'api',
@@ -277,6 +278,25 @@ class OmogenBuilder
         }
 
         return $this->first();
+    }
+
+    /**
+     * Récupère un document depuis Omogen
+     *
+     * @param string $query
+     * @param string $path
+     *
+     * @return \Psr\Http\Message\ResponseInterface
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
+    public function getDocument(string $query, string $path)
+    {
+        $this->method = self::METHOD_DOC;
+        $this->builder = "path={$query}";
+        $this->data['data'] = false;
+        $this->setUrlInData();
+
+        return Omogen::getDocument($this->data, $path);
     }
 
     /**

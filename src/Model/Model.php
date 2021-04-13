@@ -172,7 +172,7 @@ abstract class Model
      * Set attribute
      *
      * @param string $attribute
-     * @param string $value
+     * @param $value
      */
     public function setAttribute(string $attribute, $value)
     {
