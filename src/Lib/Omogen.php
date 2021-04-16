@@ -55,7 +55,7 @@ class Omogen
 
         $data['url'] = str_replace('#', '%23', $data['url']);
 
-        $response = (new Client)->post($data['url'], ['cookies' => $cookieJar]);
+        $response = (new Client)->get($data['url'], ['cookies' => $cookieJar]);
 
         return json_decode(($response->getBody())->getContents(), true);
     }

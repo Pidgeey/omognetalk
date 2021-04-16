@@ -219,6 +219,26 @@ class OmogenBuilder
     }
 
     /**
+     * Récupère une liste d'objets à partir d'un tableau d'identifiants
+     *
+     * @param array $objectIds
+     *
+     * @return array
+     * @throws \Exception
+     */
+    public function many(array $objectIds): array
+    {
+        $this->method = self::METHOD_GET;
+        $this->builder = "many=";
+
+        foreach ($objectIds as $id) {
+            $this->builder = sprintf("%s %s", $this->builder, $id);
+        }
+
+        return $this->get();
+    }
+
+    /**
      * Retourne tous les résultats d'une classe omogen
      *
      * @return array
