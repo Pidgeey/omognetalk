@@ -18,13 +18,19 @@ class Resource
     /** @var array */
     private $data;
 
+    /** @var bool Détermine si les documents doivent être récupérer avec la resource */
+    protected bool $withFiles = false;
+
     /**
      * Resource constructor.
      *
      * @param \OmogenTalk\Model\Model|null $model
+     * @param bool $withFiles
      */
-    public function __construct(?Model $model)
+    public function __construct(?Model $model, bool $withFiles = false)
     {
+        $this->withFiles = $withFiles;
+
         if ($model) {
             $this->resource = $model;
             $this->data = $this->defineDataset();

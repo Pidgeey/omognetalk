@@ -92,7 +92,7 @@ class OmogenBuilder
                         $this->castAttributes($convertedAttributes);
 
                         /** @var Model $model */
-                        $model = new $model($convertedAttributes);
+                        $model = new $this->model($convertedAttributes);
                         // Déclare que le model est existant sur le système Omogen afin de modifier la logique d'utilisation des attributs
                         $model->declareModelIsExisting();
                         $collection[] = $model;
