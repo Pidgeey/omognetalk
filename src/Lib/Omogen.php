@@ -82,6 +82,21 @@ class Omogen
     }
 
     /**
+     * Supprime un object Omogen
+     *
+     * @param array $data
+     *
+     * @return array
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
+    public static function deleteObject(array $data): array
+    {
+        $response = (new Client)->post($data['url'], ['cookies' => self::getCookie($data['token'])]);
+
+        return self::getFormattedPdaResponse($response->getBody()->getContents());
+    }
+
+    /**
      * Effectue un upload de document
      *
      * @param array $data

@@ -18,7 +18,8 @@ class OmogenBuilder
     /** @var string Méthodes HTTP */
     const METHOD_GET = 'get',
         METHOD_PUT = 'put',
-        METHOD_DOC = 'doc';
+        METHOD_DOC = 'doc',
+        METHOD_DELETE = "delete";
 
     /** @var string Formats d'échange avec Omogen */
     const FORMAT_API = 'api',
@@ -439,7 +440,7 @@ class OmogenBuilder
      * @return array
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function uploadDocument(string $field, UploadedFile $file): array
+    public function uploadDocument(string $field,  $file): array
     {
         $this->method = self::METHOD_PUT;
         $this->format = self::FORMAT_PDA;
@@ -477,6 +478,27 @@ class OmogenBuilder
         $this->data['multipart'] = $multipart;
 
         return Omogen::uploadDocument($this->data);
+    }
+
+    /**
+     * Supprime un entité
+     *
+     * @param string $objectId
+     *
+     * @return array
+     */
+    public function delete(string $objectId): array
+    {
+        $this->method = self::METHOD_DELETE;
+        $this->format = self::FORMAT_PDA;
+
+        $this->builder = "id={$objectId}";
+
+        $this->data['data'] = false;
+
+        $this->setUrlInData();
+
+        return Omogen::deleteObject($this->data);
     }
 
     /**
