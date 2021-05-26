@@ -226,6 +226,13 @@ class Omogen
             $maxIndex = count($explodeResponse) - 1;
             $response['status'] = 200;
             $response['id'] = $explodeResponse[1];
+
+            // NOTE: 26/05/21 Complétement de la merde mais pas vraiment possible de faire autrement en l'état
+            $explodedId = explode('[ ]', $response['id']);
+            if (strlen($explodedId[0]) <= 20) {
+                $response['id'] = $explodedId[0];
+            }
+
             foreach ($explodeResponse as $index => $line) {
                 if ($index >= 3 && $index < $maxIndex) {
                     $response['ignored_fields'][] = $line;
