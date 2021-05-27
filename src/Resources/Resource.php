@@ -21,15 +21,20 @@ class Resource
     /** @var bool Détermine si les documents doivent être récupérer avec la resource */
     protected bool $withFiles = false;
 
+    /** @var string|null Token utilisateur */
+    protected ?string $token = null;
+
     /**
      * Resource constructor.
      *
      * @param \OmogenTalk\Model\Model|null $model
      * @param bool $withFiles
+     * @param string $token
      */
-    public function __construct(?Model $model, bool $withFiles = false)
+    public function __construct(?Model $model, string $token = null, bool $withFiles = false)
     {
         $this->withFiles = $withFiles;
+        $this->token = $token;
 
         if ($model) {
             $this->resource = $model;
