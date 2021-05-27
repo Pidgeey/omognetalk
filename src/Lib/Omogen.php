@@ -144,8 +144,10 @@ class Omogen
         $response = (new Client())->post(env('OMOGEN_LINK') . 'guygle/api/login?info', [
             'form_params' => self::prepareTokenRequest(env('OMOGEN_ADMIN_LOGIN'), env('OMOGEN_ADMIN_PASSWORD')),
         ]);
-        $response = json_decode($response->getBody()->getContents());
-        return $response->token;
+        $token = $response->getHeader('set-cookie')[0] ?? null;
+        $explodedToken = explode(";", $token);
+        $token = str_replace("GBSESSIONID=", "", $explodedToken[0]);
+        return $token;
     }
 
     /**
@@ -167,9 +169,11 @@ class Omogen
                 'timeout' => '0'
             ]
         ]);
+        $token = $response->getHeader('set-cookie')[0] ?? null;
+        $explodedToken = explode(";", $token);
+        $token = str_replace("GBSESSIONID=", "", $explodedToken[0]);
         $response = json_decode($response->getBody()->getContents());
-
-        if ($response->code !== self::STATE_OK || !isset($response->token)) {
+        if ($response->code !== self::STATE_OK || !$token) {
             $message = sprintf("%s %s", $response->code, $response->text);
             if ($response->code === self::STATE_AUTH_IMPOSSIBLE) {
                 abort(401, $message);
@@ -180,7 +184,7 @@ class Omogen
             throw $e;
         }
 
-        return $response->token;
+        return $token;
     }
 
     /**
