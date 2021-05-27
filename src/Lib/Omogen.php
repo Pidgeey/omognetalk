@@ -158,7 +158,7 @@ class Omogen
      */
     public static function login(array $credentials): string
     {
-        $login = self::prepareUserId($credentials['login']);
+        $login = $credentials['login'];
 
         $response = (new Client())->post(env('OMOGEN_LINK') . 'guygle/api/login?info', [
             'form_params' => [
