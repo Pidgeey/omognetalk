@@ -158,7 +158,7 @@ class Omogen
      * @return Object
      * @throws \Illuminate\Auth\AuthenticationException|\GuzzleHttp\Exception\GuzzleException
      */
-    public static function login(array $credentials): Object
+    public static function login(array $credentials): array
     {
         $login = $credentials['login'];
 
@@ -185,7 +185,7 @@ class Omogen
         }
 
         $response->token = $token;
-        return $response;
+        return (array)$response;
     }
 
     /**
