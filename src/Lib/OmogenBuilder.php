@@ -142,12 +142,12 @@ class OmogenBuilder
     private function findObject(&$attributes, $key, $value)
     {
         if (is_array($value)) {
-            foreach ($value as $arrayValues) {
+            foreach ($value as $firstKeys => $arrayValues) {
                 if (is_array($arrayValues)) {
                     foreach ($arrayValues as $attributeKey => $attribute) {
                         $model = $this->castObject($attributeKey, $attribute, $arrayValues);
                         if ($model) {
-                            $attributes[$key] = $model;
+                            $attributes[$key][$firstKeys] = $model;
                             $this->findObject($model, $key, $model);
                         }
                     }
