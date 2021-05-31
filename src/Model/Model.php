@@ -76,7 +76,10 @@ abstract class Model
      *
      * @return string
      */
-    public abstract function getId(): string;
+    public function getId(): string
+    {
+        return $this->id ?? '';
+    }
 
     /**
      * Récupère la clé primaire du model courant
