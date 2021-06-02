@@ -134,6 +134,22 @@ class Omogen
     }
 
     /**
+     * Récupère un fichier encodé en base64 depuis Omogen
+     *
+     * @param array $data
+     * @return string
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
+    public static function getEncodedDocument(array $data): string
+    {
+        $cookieJar = CookieJar::fromArray(['GBSESSIONID' => $data['token']], env('OMOGEN_DOMAIN'));
+
+        $response = (new Client)->get($data['url'], ['cookies' => $cookieJar]);
+
+        return utf8_encode($response->getBody()->getContents());
+    }
+
+    /**
      * Retourne un token d'authentification admin
      *
      * @return string
