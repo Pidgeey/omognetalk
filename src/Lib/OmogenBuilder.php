@@ -19,7 +19,8 @@ class OmogenBuilder
     const METHOD_GET = 'get',
         METHOD_PUT = 'put',
         METHOD_DOC = 'doc',
-        METHOD_DELETE = "delete";
+        METHOD_DELETE = "delete",
+        METHOD_CLICK = "click";
 
     /** @var string Formats d'échange avec Omogen */
     const FORMAT_API = 'api',
@@ -429,6 +430,25 @@ class OmogenBuilder
             // Créer un log d'erreur comprenant la classe du model, les champs etc...
             throw $exception;
         }
+    }
+
+    /**
+     * Créer une entité par une requête click
+     *
+     * @param string $objectId
+     * @param string $click
+     * @return array
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
+    public function createObjectByClick(string $objectId,string $click): array
+    {
+        $this->format = self::FORMAT_PDA;
+        $this->method = self::METHOD_CLICK;
+
+        $this->builder = sprintf("id=%s&button=%s", $objectId, $click);
+        $this->setUrlInData();
+
+        return Omogen::createOrUpdateObject($this->data);
     }
 
     /**

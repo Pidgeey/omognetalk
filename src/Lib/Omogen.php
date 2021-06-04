@@ -76,7 +76,7 @@ class Omogen
 
         $data['url'] = str_replace('#', '%23', $data['url']);
 
-        $response = (new Client)->post($data['url'], ['cookies' => self::getCookie($data['token']), 'form_params' => $data['form_data']]);
+        $response = (new Client)->post($data['url'], ['cookies' => self::getCookie($data['token']), 'form_params' => $data['form_data'] ?? []]);
 
         return self::getFormattedPdaResponse(($response->getBody())->getContents());
     }
