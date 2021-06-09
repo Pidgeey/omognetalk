@@ -71,6 +71,12 @@ class OmogenBuilder
     {
         $result = $this->getResultsRaw();
 
+        // Something went wrong, inform client (throw HttpResponseException)
+        if (isset($result['status']) && $result['status'] != 200)
+            abort(response()->json($result, getErrorCode($result['status'])));
+        if (isset($result['code']) && $result['code'] != Omogen::STATE_OK)
+            abort(response()->json($result, getErrorCode($result['code'])));
+
         $collection = [];
 
         if (!empty($result['object']) && count($result['object']) > 0) {
