@@ -501,6 +501,38 @@ class OmogenBuilder
     }
 
     /**
+     * @param float $lon Longitude
+     * @param float $lat Latitude
+     * @param float $ray Circonference en km
+     * @return array
+     */
+    public function coords(float $lon, float $lat, float $ray): array
+    {
+        /**
+         *   1                111  km
+         *   0.1              11.1 km
+         *   0.01             1.11 km
+         *   0.001            111  m
+         *   0.0001           11.1 m
+         *   0.00001          1.11 m
+         *   0.000001         11.1 cm
+         *   0.0000001        1.11 cm
+         *   0.00000001       1.11 mm
+         */
+        $calc = ($ray / 111);
+        $this->data['class'] = $this->model->getOmogenClass();
+
+        $this->builder = sprintf("coord=%s,%s,%s,%s",
+            ($lat - $calc),
+            ($lon - $calc),
+            ($lat + $calc),
+            ($lon + $calc),
+        );
+
+        return $this->get();
+    }
+
+    /**
      * Supprime un entité
      *
      * @param string $objectId
