@@ -140,13 +140,13 @@ class Omogen
      * @return string
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public static function getEncodedDocument(array $data): string
+    public static function getEncodedDocument(array $data, array $options = []): string
     {
         $cookieJar = CookieJar::fromArray(['GBSESSIONID' => $data['token']], env('OMOGEN_DOMAIN'));
 
         $response = (new Client)->get($data['url'], ['cookies' => $cookieJar]);
 
-        return utf8_encode($response->getBody()->getContents());
+        return isset($options['binary']) ? $response->getBody()->getContents() : utf8_encode($response->getBody()->getContents());
     }
 
     /**
