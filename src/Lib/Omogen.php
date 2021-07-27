@@ -57,7 +57,32 @@ class Omogen
 
         $response = (new Client)->get($data['url'], ['cookies' => $cookieJar]);
 
-        return json_decode(($response->getBody())->getContents(), true);
+        return self::getApiResponse($response->getBody()->getContents());
+    }
+
+    /**
+     * Permets de retourner un throw si nécessaire
+     *
+     * @param string $jsonResponse
+     * @return array
+     */
+    protected static function getApiResponse(string $jsonResponse): array
+    {
+        $data = json_decode($jsonResponse, true);
+
+        $code = $data['code'];
+
+        switch ($code) {
+            case self::STATE_AUTH_NEEDED:
+                abort(401);
+                break;
+            case self::STATE_BAD_REQUEST:
+            case self::STATE_GENERAL_ERROR:
+            case self::STATE_IMPOSSIBLE_ACTION:
+                abort(400);
+        }
+
+        return $data;
     }
 
     /**
