@@ -57,7 +57,32 @@ class Omogen
 
         $response = (new Client)->get($data['url'], ['cookies' => $cookieJar]);
 
-        return json_decode(($response->getBody())->getContents(), true);
+        return self::getApiResponse($response->getBody()->getContents());
+    }
+
+    /**
+     * Permets de retourner un throw si nécessaire
+     *
+     * @param string $jsonResponse
+     * @return array
+     */
+    protected static function getApiResponse(string $jsonResponse): array
+    {
+        $data = json_decode($jsonResponse, true);
+
+        $code = $data['code'];
+
+        switch ($code) {
+            case self::STATE_AUTH_NEEDED:
+                abort(401);
+                break;
+            case self::STATE_BAD_REQUEST:
+            case self::STATE_GENERAL_ERROR:
+            case self::STATE_IMPOSSIBLE_ACTION:
+                abort(400);
+        }
+
+        return $data;
     }
 
     /**
@@ -113,6 +138,44 @@ class Omogen
         $response = (new Client())->post($data['url'], $options);
 
         return self::getFormattedPdaResponse(($response->getBody())->getContents());
+    }
+
+    /**
+     * Récupère un id pour réinitialiser un mot de passe
+     *
+     * @param string $email
+     * @return array
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
+    public static function getResetPasswordId(string $email): array
+    {
+        $url = sprintf("%sguygle/pda/password?email=%s", env('OMOGEN_LINK'), $email);
+
+        $response = (new Client())->get($url);
+
+        return self::getFormattedPdaResponse(($response->getBody())->getContents());
+    }
+
+    /**
+     * Set un nouveau mot de passe
+     *
+     * @param string $id
+     * @param string $password
+     * @return array
+     */
+    public static function setNewPassword(string $id, string $password): array
+    {
+        $url = sprintf(
+            "%sguygle/pda/password?reset-id=%s&password=%s&confirm-password=%s",
+            env('OMOGEN_LINK'),
+            $id,
+            $password,
+            $password
+        );
+
+        $response = (new Client)->post($url);
+
+        return self::getFormattedPdaResponse($response->getBody()->getContents());
     }
 
     /**
@@ -264,7 +327,7 @@ class Omogen
             $response['status'] = 500;
         } elseif (strpos($explodeResponse[0], self::STATE_IMPOSSIBLE_ACTION) !== false) {
             $response['status'] = 400;
-            $response['message'] = $explodeResponse[3];
+            $response['message'] = $explodeResponse[3] ?? $explodeResponse[1];
         }
 
         return $response;
