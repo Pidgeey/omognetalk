@@ -20,6 +20,7 @@ class OmogenBuilder
         METHOD_PUT = 'put',
         METHOD_DOC = 'doc',
         METHOD_DELETE = "delete",
+        METHOD_STOCK = "stock",
         METHOD_CLICK = "click";
 
     /** @var string Formats d'échange avec Omogen */
@@ -238,6 +239,13 @@ class OmogenBuilder
         }
 
         return $this->get();
+    }
+
+    public function getStock(string $objectId)
+    {
+        $this->method = self::METHOD_STOCK;
+        $this->builder = "s={$objectId}";
+
     }
 
     /**
