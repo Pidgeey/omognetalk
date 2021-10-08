@@ -234,12 +234,12 @@ class Omogen
      *
      * @param array $credentials
      *
-     * @return string
+     * @return Object
      * @throws \Illuminate\Auth\AuthenticationException|\GuzzleHttp\Exception\GuzzleException
      */
-    public static function login(array $credentials): string
+    public static function login(array $credentials): array
     {
-        $login = self::prepareUserId($credentials['login']);
+        $login = $credentials['login'];
 
         $response = (new Client())->post(env('OMOGEN_LINK') . 'guygle/api/login?info', [
             'form_params' => [
@@ -263,7 +263,8 @@ class Omogen
             throw $e;
         }
 
-        return $token;
+        $response->token = $token;
+        return (array)$response;
     }
 
     /**
