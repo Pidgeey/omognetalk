@@ -31,3 +31,28 @@ function jsonResponse($payload, ?int $status = null): \Illuminate\Http\Response
 
     return response($result, $status)->header('Content-Type', 'application/json');
 }
+
+/**
+ * Retourne l'entier du status correspondant à une erreur omogen
+ *
+ * @param $error
+ *
+ * @return int
+ */
+function getErrorCode($error): int
+{
+    switch ($error) {
+        case Omogen::STATE_OK:
+            return 200;
+        case Omogen::STATE_AUTH_IMPOSSIBLE:
+            return 403;
+        case Omogen::STATE_AUTH_NEEDED:
+            return 401;
+        case Omogen::STATE_BAD_REQUEST:
+        case Omogen::STATE_IMPOSSIBLE_ACTION:
+            return 400;
+        case Omogen::STATE_GENERAL_ERROR:
+        default:
+            return 500;
+    }
+}
