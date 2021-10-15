@@ -296,7 +296,7 @@ class Omogen
         $response = [];
         $explodeResponse = explode("\n", $pdaResponse);
 
-        if (strpos($explodeResponse[0], self::STATE_OK) !== false) {
+        if (str_contains($explodeResponse[0], self::STATE_OK)) {
             /**
              * Response venant de createOrUpdateObject
              *
@@ -305,7 +305,6 @@ class Omogen
              * Index 2 -> string empty
              * Index 3 jusqu'à ( Index max - 1 ) -> Champs ignorés
              */
-
             $maxIndex = count($explodeResponse) - 1;
             $response['status'] = 200;
             $response['id'] = $explodeResponse[1];
@@ -321,13 +320,13 @@ class Omogen
                     $response['ignored_fields'][] = $line;
                 }
             }
-        } elseif (strpos($explodeResponse[0], self::STATE_AUTH_NEEDED) !== false) {
+        } elseif (str_contains($explodeResponse[0], self::STATE_AUTH_NEEDED)) {
             $response['status'] = 403;
-        } elseif (strpos($explodeResponse[0], self::STATE_GENERAL_ERROR) !== false) {
+        } elseif (str_contains($explodeResponse[0], self::STATE_GENERAL_ERROR)) {
             $response['status'] = 500;
-        } elseif (strpos($explodeResponse[0], self::STATE_IMPOSSIBLE_ACTION) !== false) {
+        } elseif (str_contains($explodeResponse[0], self::STATE_IMPOSSIBLE_ACTION)) {
             $response['status'] = 400;
-            $response['message'] = $explodeResponse[3] ?? $explodeResponse[1];
+            $response['message'] = empty($explodeResponse[3]) ? $explodeResponse[1] : $explodeResponse[3];
         }
 
         return $response;
