@@ -73,6 +73,12 @@ class OmogenBuilder
     {
         $result = $this->getResultsRaw();
 
+        // Something went wrong, inform client (throw HttpResponseException)
+        if (isset($result['status']) && $result['status'] != 200)
+            abort(response()->json($result, getErrorCode($result['status'])));
+        if (isset($result['code']) && $result['code'] != Omogen::STATE_OK)
+            abort(response()->json($result, getErrorCode($result['code'])));
+
         $collection = [];
 
         if (!empty($result['object']) && count($result['object']) > 0) {
@@ -144,12 +150,12 @@ class OmogenBuilder
     private function findObject(&$attributes, $key, $value)
     {
         if (is_array($value)) {
-            foreach ($value as $arrayValues) {
+            foreach ($value as $firstKeys => $arrayValues) {
                 if (is_array($arrayValues)) {
                     foreach ($arrayValues as $attributeKey => $attribute) {
                         $model = $this->castObject($attributeKey, $attribute, $arrayValues);
                         if ($model) {
-                            $attributes[$key] = $model;
+                            $attributes[$key][$firstKeys] = $model;
                             $this->findObject($model, $key, $model);
                         }
                     }

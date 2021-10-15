@@ -69,7 +69,22 @@ class Resource
      */
     public function toArray(): array
     {
-        return $this->resource->getAttributes();
+        $attributes = $this->resource->getAttributes();
+
+        foreach ($attributes as $key => $attribute) {
+            // This only deal one level of depth, should be made recursive via a ResourceCollection->toArray() for example
+            if (is_array($attribute)) {
+                foreach ($attribute as $index => $element)
+                    if ($element instanceof Model)
+                        $attribute[$index] = (new $element->resource($element))->defineDataset();
+
+                $attributes[$key] = $attribute;
+            }
+            else if ($attribute instanceof Model)
+                $attributes[$key] = (new $attribute->resource($attribute))->defineDataset();
+        }
+
+        return $attributes;
     }
 
     /**
@@ -95,7 +110,7 @@ class Resource
     private function defineDataset(): array
     {
         return [
-            'id' => $this->resource->id ?? null,
+            'id' => $this->resource->getId(),
             'type' => $this->resource->getOmogenClassName(),
             'attributes' => $this->toArray(),
         ];
