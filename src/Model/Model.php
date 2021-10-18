@@ -275,13 +275,13 @@ abstract class Model
      * @return array
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function uploadDocument(FormRequest $request): array
+    public function uploadDocument(FormRequest $request, ?string $token = null): array
     {
         $response = [];
         $attributes = $this->getOmogenConvertedAttributes(OmogenBuilder::METHOD_PUT, true, $request->allFiles());
 
         foreach ($attributes as $field => $file) {
-            $response[] = (new OmogenBuilder($this, ['token' => Omogen::getAdminToken()]))->uploadDocument($field, $file);
+            $response[] = (new OmogenBuilder($this, ['token' => $token ?? Omogen::getAdminToken()]))->uploadDocument($field, $file);
         }
 
         return $response;
