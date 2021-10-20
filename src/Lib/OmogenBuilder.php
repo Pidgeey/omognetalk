@@ -83,14 +83,12 @@ class OmogenBuilder
 
         if (!empty($result['object']) && count($result['object']) > 0) {
             $result = array_values($result['object']);
-
             // Si un résultat est obtenu
             if (count($result[0]) > 0) {
                 // Si le data n'est pas requis, on retourne la liste des identifiants
                 if (!isset($this->data['data']) || (isset($this->data['data']) && !$this->data['data'])) {
                     return $result[0];
                 }
-
                 foreach ($result[0] as $entity) {
                     if (isset($entity['classe'])) {
                         $entityType = $entity['classe'];
@@ -433,16 +431,8 @@ class OmogenBuilder
             }
             $this->model->setId($response['id'] ?? null);
             return $this->model;
-
         } else {
-            if ($state === 400) {
-                $exception = new BadRequestHttpException($response['message']);
-            } else {
-                // State 500
-                $exception = new Exception("An error has been occured");
-            }
-            // Créer un log d'erreur comprenant la classe du model, les champs etc...
-            throw $exception;
+            abort($response['status'] ?? 500, $response['message'] ?? "An error has been occured");
         }
     }
 

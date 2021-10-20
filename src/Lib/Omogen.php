@@ -5,6 +5,7 @@ namespace OmogenTalk\Lib;
 use GuzzleHttp\Client;
 use GuzzleHttp\Cookie\CookieJar;
 use Illuminate\Auth\AuthenticationException;
+use Illuminate\Support\Facades\Http;
 use OmogenTalk\Lib\Traits\Helpers as OmogenHelpers;
 use \Exception;
 
@@ -21,6 +22,7 @@ class Omogen
     const STATE_OK = "10",
         STATE_AUTH_IMPOSSIBLE = "21",
         STATE_AUTH_NEEDED = '22',
+        STATE_AUTH_REQUESTED = "32",
         STATE_BAD_REQUEST = "34",
         STATE_IMPOSSIBLE_ACTION = "37",
         STATE_GENERAL_ERROR = "39";
@@ -74,7 +76,7 @@ class Omogen
 
         switch ($code) {
             case self::STATE_AUTH_NEEDED:
-                abort(401);
+                abort(401, sprintf("%s %s", $data['code'] ?? "", $data['text'] ?? ""));
                 break;
             case self::STATE_BAD_REQUEST:
             case self::STATE_GENERAL_ERROR:
@@ -328,6 +330,9 @@ class Omogen
         } elseif (str_contains($explodeResponse[0], self::STATE_IMPOSSIBLE_ACTION)) {
             $response['status'] = 400;
             $response['message'] = empty($explodeResponse[3]) ? $explodeResponse[1] : $explodeResponse[3];
+        } elseif (str_contains($explodeResponse[0], self::STATE_AUTH_REQUESTED)) {
+            $response['status'] = 403;
+            $response['message'] = $pdaResponse;
         }
 
         return $response;
