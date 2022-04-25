@@ -39,22 +39,23 @@ class Omogen
     {
         $cookieJar = CookieJar::fromArray(['GBSESSIONID' => $data['token']], env('OMOGEN_DOMAIN'));
 
+        // Permets d'ajoute le &class lorsque la configuration omogen le requiers
         if ($data['class'] ?? null) {
             $data['url'] = sprintf("%s&class=%s", $data['url'], $data['class']);
         }
-
+        // Permets de récupérer la data lié à l'objet. Si data est false, seulement les ID seront retournés
         if ($data['data'] ?? null) {
             $data['url'] = sprintf("%s&data", $data['url']);
         }
-
+        // Permets de récupérer les champs de manière normalisé (espaces remplacés par underscores et accents retirés)
         if ($data['canonicalize'] ?? null) {
             $data['url'] = sprintf("%s&canonicalize=php", $data['url']);
         }
-
+        // Fonctionne avec la méthode with() du builder. Permets les jonctions entre les classes
         if ($data['look'] ?? null) {
             $data['url'] = sprintf("%s&look=%s", $data['url'], str_replace('#', '%23', $data['look']));
         }
-
+        // Formate l'url.
         $data['url'] = str_replace('#', '%23', $data['url']);
 
         $response = (new Client)->get($data['url'], ['cookies' => $cookieJar]);
@@ -64,6 +65,9 @@ class Omogen
 
     /**
      * Permets de retourner un throw si nécessaire
+     *
+     * @note: Cette méthode à pour but premier de throw au plus tôt dans les cas ou Omogen retourne une erreur
+     * et ainsi éviter de passer sur tout le traitement de la donnée par la suite
      *
      * @param string $jsonResponse
      * @return array
@@ -97,6 +101,7 @@ class Omogen
      */
     public static function createOrUpdateObject(array $data): array
     {
+        // Permets d'ajoute le &class lorsque la configuration omogen le requiers
         if (($data['class'] ?? null)) {
             $data['url'] = sprintf("%s&class=%s", $data['url'], $data['class']);
         }
@@ -145,6 +150,10 @@ class Omogen
     /**
      * Récupère un id pour réinitialiser un mot de passe
      *
+     * @note Cette méthode prends en paramètre l'email d'un utilisateur. Ensuite, il renvoi un id en réponse. Cet ID
+     * devra être passé en paramètre pour la renitialisation du mot de passe qui est, en toute logique, la prochaine
+     * étape.
+     *
      * @param string $email
      * @return array
      * @throws \GuzzleHttp\Exception\GuzzleException
@@ -160,6 +169,9 @@ class Omogen
 
     /**
      * Set un nouveau mot de passe
+     *
+     * @note Prends en paramètre l'ID récupérer lors de la requête précédente ainsi que le nouveau password.
+     * Omogen va vérifier si l'id corresponds et changera le mot de passe associé à l'utilisateur.
      *
      * @param string $id
      * @param string $password
@@ -234,6 +246,10 @@ class Omogen
     /**
      * Login
      *
+     * @note Cette méthode à pour but de récupérer un token utilisateur. Il va donc créer une session avec Omogen
+     * puis ensuite la méthode récupère le token dans le header de la réponse, le traite puis le retourne
+     * En général c'est ce token que nous allons stoker en front et réutiliser dans les requêtes vers omogen
+     *
      * @param array $credentials
      *
      * @return Object
@@ -290,6 +306,12 @@ class Omogen
     /**
      * Formate une réponse Omogen format pda
      *
+     * @note Cette méthode est appellé lors des requêtes formattés en PDA (le plus souvent les méthodes create/update)
+     * Etant donné la purge qu'est Omogen, toute la logique qui constitue cette méthode est uniquement basé sur le format
+     * que renvoi Omogen. La plupart du temps, celui ne change pas, mais impossible d'être sur à tous les coups..
+     * Donc, à manipuler avec précaution et ne pas hésiter à débugger dans cette méthode si les retours attendus ne sont
+     * pas corrects
+     *
      * @param string $pdaResponse
      *
      * @return array
@@ -297,8 +319,12 @@ class Omogen
     private static function getFormattedPdaResponse(string $pdaResponse): array
     {
         $response = [];
+        // Les retours PDA de Omogen en texte contiennent des retours à la ligne. On va donc cherche dans un premier temps
+        // à découper le retour Omogen dans un tableau afin de travailler avec indexes
         $explodeResponse = explode("\n", $pdaResponse);
 
+        // Le premier index est toujours le code retour Omogen, je vais donc m'en servir pour déterminer si le retour
+        // de la requête contient une erreur
         if (str_contains($explodeResponse[0], self::STATE_OK)) {
             /**
              * Response venant de createOrUpdateObject
@@ -313,11 +339,14 @@ class Omogen
             $response['id'] = $explodeResponse[1];
 
             // NOTE: 26/05/21 Complétement de la merde mais pas vraiment possible de faire autrement en l'état
+            // Ici je récupère l'id de l'entité pour l'utiliser par la suite
             $explodedId = explode('[ ]', $response['id']);
             if (strlen($explodedId[0]) <= 20) {
                 $response['id'] = $explodedId[0];
             }
-
+            // Ici, dans la plupart des cas, on récupère les champs qui ont étés ignorés par Omogen.
+            // Cela permets éventuellement de débugger et de comprendre pourquoi certains champs ne se sont pas mis à jour
+            // sur omogen.
             foreach ($explodeResponse as $index => $line) {
                 if ($index >= 3 && $index < $maxIndex) {
                     $response['ignored_fields'][] = $line;

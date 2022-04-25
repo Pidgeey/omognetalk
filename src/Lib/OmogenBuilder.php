@@ -66,11 +66,20 @@ class OmogenBuilder
     /**
      * Retourne une liste de résultats
      *
+     * @note Cette méthode est la méthode principale appelé dans tous les cas de getters sur ce builder.
+     * Sa fonction principale et de formatter les données de retour.
+     * Elle va dans un premier temps, récupérer les données de Omogen puis les traiter pour les rendre compliant avec le
+     * reste de l'application:
+     * - Création des models dynamique
+     * - Conversion des champs Omogen
+     * - Cast des attributs
+     *
      * @return array
      * @throws \Exception
      */
     public function get(): array
     {
+        // On récupère le resultat brut venant d'omogen
         $result = $this->getResultsRaw();
 
         // Something went wrong, inform client (throw HttpResponseException)
@@ -81,6 +90,7 @@ class OmogenBuilder
 
         $collection = [];
 
+        // on s'assure qu'un résultat est présent
         if (!empty($result['object']) && count($result['object']) > 0) {
             $result = array_values($result['object']);
             // Si un résultat est obtenu
@@ -93,6 +103,7 @@ class OmogenBuilder
                     if (isset($entity['classe'])) {
                         $entityType = $entity['classe'];
                         $model = Arr::get(config('model'), $entityType);
+                        // C'est ici que l'on convertit les attributs venant d'omogen qui en ont besoin depuis le model
                         $convertedAttributes = $this->model->getOmogenConvertedAttributes(self::METHOD_GET, true, $entity);
 
                         // Permets de cast les attributs avec plus de conformité
@@ -113,6 +124,10 @@ class OmogenBuilder
 
     /**
      * Cast un tableau objet lié en model
+     *
+     * @note Il s'agit de la méthode qui cast les objets Omogen en model.
+     * Dans un premier temps, il ne faudra pas oublier de déclarer le nom de la classe dans le fichier config/model.php
+     * Ensuite, cette méthode va tout simplement créer un nouveau model en fonction de la classe de l'objet Omogen
      *
      * @param $key
      * @param $value
@@ -140,6 +155,9 @@ class OmogenBuilder
 
     /**
      * Boucle sur les attributs afin de cast en model les champs comprenant des objets
+     *
+     * @note Cette méthode permets de caster les objets lié. Si ce sont des classes, et que ces classes sont déclarés
+     * fans la configuration config/model.php, ces objets seront caster en model
      *
      * @param $attributes
      * @param $key
@@ -184,6 +202,9 @@ class OmogenBuilder
     /**
      * Cast attributes
      *
+     * @note C'est dans cette méthode que l'on cast les attributs venant d'omogen.
+     * Exemple: les booléens - Oui -> true
+     *
      * @param array $attributes
      */
     private function castAttributes(array &$attributes)
@@ -210,6 +231,8 @@ class OmogenBuilder
     /**
      * Retourne une liste de résultats sous format omogen
      *
+     * @note Méthode qui est toujours à la nature de la réception des données venant d'omogen lors des requêtes GET
+     *
      * @return mixed
      * @throws Exception|\GuzzleHttp\Exception\GuzzleException
      */
@@ -227,6 +250,9 @@ class OmogenBuilder
 
     /**
      * Récupère une liste d'objets à partir d'un tableau d'identifiants
+     *
+     * @note Il s'agit de la méthode qu'il est nécessaire d'appeller lorsque il est nécessaire d'effectuer une requête
+     * omogen many
      *
      * @param array $objectIds
      *
@@ -281,6 +307,9 @@ class OmogenBuilder
     /**
      * Ajoute une clause where
      *
+     * @note Actuellement à l'état de prototype. S'il est nécessaire d'effectuer une clause where, se tourner vers
+     * la méthoe queryRaw()
+     *
      * @param string $column
      * @param string $operator
      * @param string $value
@@ -295,6 +324,8 @@ class OmogenBuilder
 
     /**
      * Récupère un élément selon son identifiant
+     *
+     * @note Principale méthode utilisée pour récupérer une entité via son ID
      *
      * @param string $objectId
      *
@@ -560,6 +591,9 @@ class OmogenBuilder
     /**
      * Set l'url dans le data
      *
+     * @note Il s'agit de la méthode formattant l'url en prévision de la requête. Elle est toujours appellée juste avant
+     * les call vers le service Omogen
+     *
      * @return void
      */
     protected function setUrlInData(): void
@@ -573,6 +607,9 @@ class OmogenBuilder
 
     /**
      * Créer une requête query selon la clause en paramètre
+     *
+     * @note Il s'agit de la méthode la plus simple et efficace afin d'effectuer une clase de type where vers Omogen
+     * pour récupérer des données.
      *
      * @param string $request
      *
@@ -592,6 +629,12 @@ class OmogenBuilder
 
     /**
      * Permets de placer des relations une requête GET
+     *
+     * @note C'est la méthode permettant de créer des relations.
+     * Les relations se lient avec des points, et les multiples relations s'espacent
+     * Ex: with('user.patient.objet', 'customer', 'secteur.agence')
+     * !!! Les relations demandées dans la méthode doivent toujours être déclarés sur la synthaxe Omogen
+     * !!! Ex: si le champ du model est "customer" et que sa conversion Omogen est "client", il faudra utiliser "client"
      *
      * @return $this
      */

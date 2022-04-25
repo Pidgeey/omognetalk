@@ -1,4 +1,4 @@
-# Documentation Laravel-OmogenTalk v2
+@# Documentation Laravel-OmogenTalk v2
 <em> En cours de développement </em>
 
 Wrapper Php sous Laravel 8
@@ -341,8 +341,9 @@ en fonction de vos besoin pour votre requête :
 data (bool) | Permet de récupérer les attributs de l'objet
 User::getQueryBuilder(['data' => true]);
 
-depth (int) | Permet de récupérer une profondeur un objet
-User::getQueryBuilder(['depth' => 2]);
+canonicalize (string) | Permet de récupérer les champs omogen en format normalisé: les espaces sont remplacés par des underscores et les accents retirés
+Choix disponible: php
+User::getQueryBuilder(['canonicalize' => 'php']);
 
 token (string) | Permet d'injecter le token nécessaire dans la requête
 User::getQueryBuilder(['token' => $token]);
@@ -351,18 +352,31 @@ User::getQueryBuilder(['token' => $token]);
 ## <a name="omogenbuildermethods" ></a> Builder Omogen
 Différentes méthodes de builder sont disponibles. 
 
-### <a name="omogenbuildermethodwhere" ></a> Where
-La méthode `where()` simule une recherche avancée du système Omogen. Elle prends en paramètre:
-- L'attribut Omogen
-- L'opérateur
-- La valeur
+### <a name="omogenbuildermethodqueryRaw" ></a> QueryRaw
+La méthode `queryRaw(string)` remplace la clause where. Elle permets d'utiliser la synthaxe Omogen d'une manière brute.
 ```
-$builder = User::gerQuerybuilder(['data' => true])->where('prenom', 'est', 'Florian');
+$builder = User::gerQuerybuilder(['data' => true])->queryRaw('dont prénom est Florian');
 // Le query du builder sera donc: query=utilisateurs dont le prenom est Florian
 ```
 Elle doit toujours être suivi d'une méthode "getter" comme `get()` ou `find()`
 ```
 $users = User::gerQuerybuilder(['data' => true])->where('age', 'est', 29)->get();
+```
+
+### <a name="" ></a> With
+La méthode `with(string)` permets de créer des relations entre les objets omogen. 
+
+Exemple: Je souhaite récupérer l'objet associé à mon objet `User`
+```
+User::getQueryBuilder(['data' => true])->with('object')->find($userId);
+```
+Exemple: Je souhaite récupérer l'objet associé du patient associé à mon objet `User`
+```
+User::getQueryBuilder(['data' => true])->with('patient.object')->find($userId);
+```
+Exemple: Je souhaite récupérer l'objet associé du patient associé à mon objet `User` ainsi que le secteur de mon objet `User`
+```
+User::getQueryBuilder(['data' => true])->with('patient.object', 'secteur')->find($userId);
 ```
 
 ### <a name="omogenbuildermethodget" ></a> Get
@@ -414,6 +428,13 @@ Pour fonctionner, vous devez avoir renseigné l'attribut de classe `primaryKey`:
 # app\Models\user
 
 public $primaryKey = 'id';
+```
+
+### <a name="omogenbuildermethodall" ></a> All
+
+La méthode `all()` permets de récupérer simplement tous les objets d'une classe
+```
+User::getQueryBuilder(['data' => true])->all();
 ```
 
 
@@ -562,6 +583,39 @@ public function checkIfUserExists(FormRequest $request): Response
     return jsonResponse($response);
 }
 ```
+
+# <a name="mails" ></a> Mails
+Une libraire permettant d'envoyer des mails via le service omogen-api.
+
+## Configuration
+Afin d'utiliser le service il faut, dans un premier temps, renseigner les variables d'environnement:
+```
+MAIL_CONFIG=mymediks
+MAIL_ENV=dev
+MAIL_SENDER=no-reply@my-mediks.com
+MAIL_BASE_URI=https://dev-api.omogen.online/
+```
+`MAIL_CONFIG` corresponds au projet sur lequel sont placés les templates
+`MAIL_ENV` corresponds à l'environnement sur lequel sont placés les templates
+`MAIL_SENDER` corresponds à l'expediteur du mail
+`MAIL_BASE_URI` corresponds à la base url vers lequel le service de mail est appellé
+
+## Utilisation
+### Méthodes
+Il existe deux méthodes permettant d'envoyer des emails: `sendMail()` et `sendMailWithFiles()`
+### Objet de mail
+La méthode `getSubjectByTemplate` et un switch/case permets de récupérer dynamiquement l'objet du mail en fonction du template
+appelé. Pour chaque template, il sera donc important d'ajouter un case supplémentaire
+
+```
+case MY_NEW_TEMPLATE:
+    $object = "New object for mail";
+    break;
+```
+
+
+
+
 
 
 
